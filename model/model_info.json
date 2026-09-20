@@ -1,0 +1,49 @@
+{
+  "model_type": "random_forest",
+  "version": "random_forest_v1",
+  "training_date": "2026-09-20",
+  "threshold": 0.5,
+  "cv_metrics": {
+    "roc_auc_mean": 0.7851779398142874,
+    "roc_auc_std": 0.00520209248084119,
+    "pr_auc_mean": 0.5588374846541387,
+    "pr_auc_std": 0.006006303110933005
+  },
+  "test_metrics": {
+    "roc_auc": 0.7773301579678735,
+    "pr_auc": 0.5569488200641213,
+    "precision": 0.5145762711864407,
+    "recall": 0.5719668425018839,
+    "f1": 0.5417558886509636,
+    "confusion_matrix": [
+      [
+        3957,
+        716
+      ],
+      [
+        568,
+        759
+      ]
+    ]
+  },
+  "all_models_compared": {
+    "logistic_regression": {
+      "cv_roc_auc_mean": 0.7598830420214373,
+      "cv_pr_auc_mean": 0.5082705743449519,
+      "test_roc_auc": 0.7464918560035838,
+      "test_pr_auc": 0.4972179391194124
+    },
+    "random_forest": {
+      "cv_roc_auc_mean": 0.7851779398142874,
+      "cv_pr_auc_mean": 0.5588374846541387,
+      "test_roc_auc": 0.7773301579678735,
+      "test_pr_auc": 0.5569488200641213
+    },
+    "xgboost": {
+      "cv_roc_auc_mean": 0.746302440517303,
+      "cv_pr_auc_mean": 0.5057331853367588,
+      "test_roc_auc": 0.7381749862241539,
+      "test_pr_auc": 0.5025998267769279
+    }
+  }
+}
