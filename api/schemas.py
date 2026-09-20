@@ -80,6 +80,9 @@ class PredictionResponse(BaseModel):
     risk_category: str = Field(..., description="LOW <30%, MEDIUM 30-60%, HIGH >=60%")
     model_version: str
     top_contributors: list[Contributor]
+    risk_narrative: str | None = Field(
+        None, description="Plain-English narrative from top_contributors, only present when ?narrate=true succeeds"
+    )
 
 
 class PredictionLogOut(BaseModel):
@@ -92,6 +95,7 @@ class PredictionLogOut(BaseModel):
     risk_category: str
     default_flag: bool
     latency_ms: float
+    narrative_latency_ms: float | None = None
     input_payload: dict[str, Any]
 
 

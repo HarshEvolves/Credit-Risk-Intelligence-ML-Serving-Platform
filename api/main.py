@@ -13,12 +13,13 @@ from pathlib import Path
 
 import joblib
 import pandas as pd
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.exception_handlers import request_validation_exception_handler
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from src.explain import explain_prediction
+from src.narrate import generate_risk_narrative
 from src.preprocessing import PREPROCESSOR_PATH, load_preprocessor
 
 from .db import get_recent_predictions, init_db, log_error, log_prediction
@@ -89,7 +90,10 @@ def get_model_info():
 
 
 @app.post("/predict", response_model=PredictionResponse)
-def predict(customer: CustomerRequest):
+def predict(
+    customer: CustomerRequest,
+    narrate: bool = Query(False, description="If true, also generate a plain-English risk narrative via Groq"),
+):
     start = time.perf_counter()  # request is already parsed/validated by this point
 
     raw_row = pd.DataFrame([customer.model_dump()])
@@ -108,7 +112,18 @@ def predict(customer: CustomerRequest):
         top_contributors=explanation["top_contributors"],
     )
 
+    # Model-inference latency only — narrative generation (below) is timed separately
+    # and never included here, so /stats latency stays uncontaminated by LLM call time.
     latency_ms = (time.perf_counter() - start) * 1000
+
+    narrative_latency_ms = None
+    if narrate:
+        narrative_start = time.perf_counter()
+        response.risk_narrative = generate_risk_narrative(
+            response.default_probability, response.risk_category, explanation["top_contributors"]
+        )
+        narrative_latency_ms = (time.perf_counter() - narrative_start) * 1000
+
     try:
         log_prediction(
             model_version=response.model_version,
@@ -116,6 +131,7 @@ def predict(customer: CustomerRequest):
             risk_category=response.risk_category,
             default_flag=response.default_flag,
             latency_ms=latency_ms,
+            narrative_latency_ms=narrative_latency_ms,
             input_payload=customer.model_dump(),
         )
     except Exception:

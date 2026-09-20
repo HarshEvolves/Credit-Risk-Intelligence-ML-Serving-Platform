@@ -11,5 +11,6 @@ uvicorn==0.34.3
 sqlalchemy==2.0.41
 psycopg2-binary==2.9.9
 python-dotenv==1.1.0
+requests==2.34.2
 # xgboost intentionally excluded: the winning Phase 4 model is the Random Forest,
 # and no api/src runtime code imports xgboost — it's a training-time-only dependency.

@@ -32,7 +32,8 @@ class PredictionLog(Base):
     default_probability: Mapped[float] = mapped_column(Float)
     risk_category: Mapped[str] = mapped_column(String)
     default_flag: Mapped[bool] = mapped_column(Boolean)
-    latency_ms: Mapped[float] = mapped_column(Float)
+    latency_ms: Mapped[float] = mapped_column(Float)  # model inference only, never includes narrative generation
+    narrative_latency_ms: Mapped[float | None] = mapped_column(Float, nullable=True)
     input_payload: Mapped[dict] = mapped_column(JSON)  # raw request, for later drift analysis
 
 
