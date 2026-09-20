@@ -93,3 +93,34 @@ class PredictionLogOut(BaseModel):
     default_flag: bool
     latency_ms: float
     input_payload: dict[str, Any]
+
+
+class LatencyStats(BaseModel):
+    mean_ms: float | None
+    p50_ms: float | None
+    p95_ms: float | None
+
+
+class PredictionDistribution(BaseModel):
+    mean_probability: float | None
+    pct_high: float | None
+    pct_medium: float | None
+    pct_low: float | None
+
+
+class DriftFlag(BaseModel):
+    feature: str
+    training_mean: float
+    production_mean: float
+    threshold: float
+    diff: float
+
+
+class StatsResponse(BaseModel):
+    total_requests: int
+    requests_last_24h: int
+    error_count: int
+    error_rate: float
+    latency: LatencyStats
+    prediction_distribution: PredictionDistribution
+    drift_flags: list[DriftFlag]

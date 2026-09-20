@@ -5,6 +5,7 @@ request would carry) and runs feature engineering + encoding/scaling in one
 fitted object, so it can be reused as-is at inference time.
 """
 
+import json
 from pathlib import Path
 
 import joblib
@@ -23,9 +24,11 @@ TARGET = "default.payment.next.month"
 CATEGORICAL_COLS = ["SEX", "EDUCATION", "MARRIAGE"]
 SKEWED_COLS = BILL_COLS + PAY_AMT_COLS  # right-skewed w/ outliers per Phase 2 EDA
 NUMERIC_COLS = ["LIMIT_BAL", "AGE"] + PAY_COLS + ENGINEERED_COLS
+NUMERIC_RAW_COLS = ["LIMIT_BAL", "AGE"] + PAY_COLS + BILL_COLS + PAY_AMT_COLS  # raw fields, for drift checks
 
 MODEL_DIR = Path(__file__).resolve().parent.parent / "model"
 PREPROCESSOR_PATH = MODEL_DIR / "preprocessor.pkl"
+TRAINING_STATS_PATH = MODEL_DIR / "training_stats.json"
 
 
 def split_raw_data(df: pd.DataFrame, test_size: float = 0.2, random_state: int = 42):
@@ -59,6 +62,20 @@ def load_preprocessor(path: Path = PREPROCESSOR_PATH) -> Pipeline:
     return joblib.load(path)
 
 
+def compute_training_stats(X_train_raw: pd.DataFrame) -> dict:
+    """Mean/std of each raw numeric input field, for the API's drift check against production traffic."""
+    return {
+        col: {"mean": float(X_train_raw[col].mean()), "std": float(X_train_raw[col].std())}
+        for col in NUMERIC_RAW_COLS
+    }
+
+
+def save_training_stats(stats: dict, path: Path = TRAINING_STATS_PATH) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w") as f:
+        json.dump(stats, f, indent=2)
+
+
 if __name__ == "__main__":
     # Run as `python -m src.preprocessing` (not `python src/preprocessing.py`) so the
     # pickled pipeline references `src.features`, matching how later code (e.g. the
@@ -77,9 +94,13 @@ if __name__ == "__main__":
 
     save_preprocessor(pipeline)
 
+    training_stats = compute_training_stats(X_train)
+    save_training_stats(training_stats)
+
     print(f"X_train: {X_train_processed.shape}, X_test: {X_test_processed.shape}")
     print(f"y_train: {y_train.shape}, y_test: {y_test.shape}")
     print(f"saved preprocessor -> {PREPROCESSOR_PATH}")
+    print(f"saved training stats -> {TRAINING_STATS_PATH}")
 
     # simulate a single incoming API request
     single_row = X_test.iloc[[0]]

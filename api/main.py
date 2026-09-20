@@ -13,13 +13,17 @@ from pathlib import Path
 
 import joblib
 import pandas as pd
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.exception_handlers import request_validation_exception_handler
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 
 from src.explain import explain_prediction
 from src.preprocessing import PREPROCESSOR_PATH, load_preprocessor
 
-from .db import get_recent_predictions, init_db, log_prediction
-from .schemas import CustomerRequest, PredictionLogOut, PredictionResponse
+from .db import get_recent_predictions, init_db, log_error, log_prediction
+from .schemas import CustomerRequest, PredictionLogOut, PredictionResponse, StatsResponse
+from .stats import compute_stats
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +56,26 @@ def _risk_category(proba: float) -> str:
     if proba < RISK_MEDIUM_MAX:
         return "MEDIUM"
     return "HIGH"
+
+
+def _try_log_error(endpoint: str, status_code: int, detail: str) -> None:
+    try:
+        log_error(endpoint=endpoint, status_code=status_code, detail=detail)
+    except Exception:
+        logger.exception("failed to log error to the database")
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_error_handler(request: Request, exc: RequestValidationError):
+    _try_log_error(endpoint=request.url.path, status_code=422, detail=str(exc))
+    return await request_validation_exception_handler(request, exc)
+
+
+@app.exception_handler(Exception)
+async def unhandled_error_handler(request: Request, exc: Exception):
+    _try_log_error(endpoint=request.url.path, status_code=500, detail=str(exc))
+    logger.exception("unhandled error in %s", request.url.path)
+    return JSONResponse(status_code=500, content={"detail": "internal server error"})
 
 
 @app.get("/health")
@@ -107,3 +131,11 @@ def predictions_recent(limit: int = 20):
     except Exception as exc:
         raise HTTPException(status_code=503, detail=f"database unavailable: {exc}") from exc
     return rows
+
+
+@app.get("/stats", response_model=StatsResponse)
+def stats():
+    try:
+        return compute_stats()
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail=f"database unavailable: {exc}") from exc

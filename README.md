@@ -2,7 +2,8 @@
 
 **Phase 1: repo setup + data ingestion. Phase 2: EDA. Phase 3: preprocessing + feature engineering.
 Phase 4: model training + evaluation. Phase 5: cost-based threshold + fairness audit.
-Phase 6: SHAP explainability. Phase 7: FastAPI service. Phase 8: Postgres logging + Docker.**
+Phase 6: SHAP explainability. Phase 7: FastAPI service. Phase 8: Postgres logging + Docker.
+Phase 9: monitoring.**
 
 Dataset: [UCI Default of Credit Card Clients](https://archive.ics.uci.edu/dataset/350/default+of+credit+card+clients) — 30,000 rows, 24 features, target `default.payment.next.month`.
 
@@ -76,10 +77,49 @@ production threshold from \`model/model_info.json\`), a \`risk_category\` band (
 and the top 5 SHAP \`top_contributors\` driving that specific prediction. Every call is also
 logged to Postgres (see below) — a DB write failure never breaks the response, it's just logged.
 
-Run the test suite:
+\`GET /stats\` reports monitoring numbers computed straight from the \`predictions\`/\`errors\`
+tables — no separate metrics store:
 
 \`\`\`bash
-python -m pytest tests/
+curl http://127.0.0.1:8000/stats
+\`\`\`
+
+\`\`\`json
+{
+  "total_requests": 46,
+  "requests_last_24h": 46,
+  "error_count": 1,
+  "error_rate": 0.0213,
+  "latency": {"mean_ms": 41.0, "p50_ms": 38.8, "p95_ms": 62.0},
+  "prediction_distribution": {"mean_probability": 0.78, "pct_high": 100.0, "pct_medium": 0.0, "pct_low": 0.0},
+  "drift_flags": [
+    {"feature": "LIMIT_BAL", "training_mean": 167364.7, "production_mean": 659130.4, "threshold": 259022.6, "diff": 491765.8}
+  ]
+}
+\`\`\`
+
+- \`error_count\`/\`error_rate\` come from a separate \`errors\` table — every \`/predict\` call that
+  422s (bad input) or 500s (unhandled exception) is logged there via global FastAPI exception
+  handlers, independent of the normal \`predictions\` log.
+- \`drift_flags\` compares the mean of each raw numeric input feature across all logged
+  \`predictions.input_payload\` rows against \`model/training_stats.json\` (mean/std computed once
+  from \`X_train\` — see \`src/preprocessing.py\`'s \`compute_training_stats\`). A feature is flagged
+  when \`|production_mean - training_mean| > 2 * training_std\` — two standard deviations is a
+  "this isn't just sampling noise" heuristic, not a rigorous statistical test; it's deliberately
+  simple, per this phase's brief. An **empty \`drift_flags\` list means nothing has drifted enough
+  to flag**, not that no traffic has been logged (check \`total_requests\` for that) — on a fresh,
+  empty table \`/stats\` returns \`null\`s for latency/distribution and an empty \`drift_flags\` rather
+  than erroring.
+- \`tests/test_stats.py::test_drift_detector_fires_on_synthetic_shift\` actually proves this fires:
+  it floods \`/predict\` with \`LIMIT_BAL\` inflated to 5-6x the training mean and asserts
+  \`"LIMIT_BAL"\` shows up in \`drift_flags\` while an untouched feature (\`AGE\`) does not.
+
+Run the test suite (\`test_stats.py\` needs a real, reachable Postgres — point \`DATABASE_URL\` at
+one before running, since it asserts on real aggregated rows, not mocks):
+
+\`\`\`bash
+docker run --rm -d -p 5433:5432 -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=credit_risk postgres:16-alpine
+DATABASE_URL="postgresql+psycopg2://postgres:postgres@localhost:5433/credit_risk" python -m pytest tests/
 \`\`\`
 
 ## Docker (API + Postgres)
@@ -107,6 +147,7 @@ curl -X POST http://127.0.0.1:8001/predict \\
     "PAY_AMT1": 0, "PAY_AMT2": 689, "PAY_AMT3": 0, "PAY_AMT4": 0, "PAY_AMT5": 0, "PAY_AMT6": 0
   }'
 curl http://127.0.0.1:8001/predictions/recent   # confirms the row above actually got logged
+curl http://127.0.0.1:8001/stats                # aggregate numbers + drift_flags over everything logged so far
 \`\`\`
 
 Note: \`requirements-api.txt\` (used by the Dockerfile, not \`requirements.txt\`) intentionally
