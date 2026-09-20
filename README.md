@@ -228,6 +228,39 @@ while confirming an untouched feature (`AGE`) stays unflagged — run against a 
 both via pytest and by hand through the live `docker compose` stack, not asserted from
 theory.
 
+## Phase 11: Frontend
+
+A React + Vite single-page app in `frontend/` — dark fintech UI (Sora for headers, Inter for
+body, a continuous teal→amber→red risk gradient), calling `POST /predict?narrate=true`
+against the backend above. Not a generic form: 23 raw fields are grouped into four sections
+(Personal info, Credit info, Repayment history, Bill/payment history), `PAY_0`-`PAY_6` are
+sliders labeled with their actual meaning ("2 months late", not just the number 2), and three
+"Load example" buttons preload the exact true-positive/false-positive/true-negative rows
+documented above — re-extracted from `X_test_raw` and re-verified against the live model
+(`predict_proba` matches 0.983 / 0.9806 / 0.0493 exactly) before being hardcoded, not
+retyped by hand.
+
+On submit, the result panel reveals in sequence: an animated circular gauge (SVG stroke
+animation via framer-motion, color continuously interpolated by risk level, not 3 flat
+buckets), a color-coded risk badge, a recharts horizontal bar chart of `top_contributors`
+(red = increases risk, teal = decreases risk), then the AI narrative fades in last.
+
+That last part is deliberately **two separate API calls**, not one: a fast plain `/predict`
+renders the gauge and chart the instant inference finishes, while a second
+`/predict?narrate=true` call runs concurrently and only backfills the narrative card once
+Groq responds (~700ms, per Phase 10). A single `?narrate=true` call would force the gauge to
+wait ~700ms for something it doesn't need — this way the narrative genuinely streams in after
+the rest of the UI, not just on a staggered animation timer covering for one blocking call.
+
+Two real bugs surfaced and got fixed during development (not encountered later by a user):
+an HTML5 `step={100}` on the currency inputs silently rejected the real dataset values (e.g.
+`78331` isn't a multiple of 100) — the browser blocks form submission natively with no
+visible error when this happens, so the "Load example" feature looked broken with zero
+console output. And the backend had no CORS headers at all, since nothing before this phase
+ever called it from a browser. Fixed by loosening the number `step` to `1` and adding
+`CORSMiddleware` (`allow_origins=["*"]` — reasonable for an unauthenticated demo API with no
+cookies to leak) to `api/main.py`.
+
 ## How to run it
 
 ```bash
@@ -264,6 +297,19 @@ Postgres is not published to the host — the API reaches it over the internal D
 by service name (`postgres`), not `localhost`. Run the test suite locally with
 `python -m pytest tests/`.
 
+With the backend running, start the frontend separately:
+
+```bash
+cd frontend
+cp .env.example .env   # VITE_API_BASE_URL=http://localhost:8001 by default
+npm install
+npm run dev
+```
+
+Open the printed `localhost:5173` URL, click a "Load example" button, and submit — no need
+to hand-enter 23 field values. `VITE_API_BASE_URL` is the only thing that changes when the
+backend moves to Azure in Phase 12; no frontend code changes needed.
+
 **Two known gotchas:**
 
 - If you regenerate `model/preprocessor.pkl`, run it as `python -m src.preprocessing` —
@@ -286,10 +332,14 @@ by service name (`postgres`), not `localhost`. Run the test suite locally with
 
 - **DS:** pandas, numpy, scikit-learn, XGBoost, SHAP, matplotlib, seaborn, Jupyter
 - **Backend:** FastAPI, Pydantic, Uvicorn, SQLAlchemy, PostgreSQL, psycopg2, Groq API
+- **Frontend:** React, Vite, Tailwind CSS, recharts, framer-motion
 - **MLE:** Docker, Docker Compose, joblib, pytest
 
 ## What's next
 
-No further phases are currently planned. The system as it stands: a trained, explained,
-cost-thresholded, fairness-audited model, served with logging, monitoring, drift detection,
-and opt-in LLM narration — end to end, locally runnable with `docker compose up`.
+Phase 12 (planned, not yet built): deploy the backend to Azure and point the frontend's
+`VITE_API_BASE_URL` at it — the frontend was built against that URL swap needing zero code
+changes. Otherwise the system as it stands: a trained, explained, cost-thresholded,
+fairness-audited model, served with logging, monitoring, drift detection, opt-in LLM
+narration, and a real UI — end to end, locally runnable with `docker compose up` plus
+`npm run dev`.

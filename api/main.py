@@ -16,6 +16,7 @@ import pandas as pd
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.exception_handlers import request_validation_exception_handler
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from src.explain import explain_prediction
@@ -35,6 +36,16 @@ RISK_LOW_MAX = 0.30
 RISK_MEDIUM_MAX = 0.60
 
 app = FastAPI(title="Credit Risk Intelligence API")
+
+# Open CORS: this is an unauthenticated demo API with no cookies/credentials involved
+# (see frontend/), so there's no session to leak cross-origin — permissive by design,
+# not an oversight.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Loaded once at import time, not per-request.
 preprocessor = load_preprocessor(PREPROCESSOR_PATH)
