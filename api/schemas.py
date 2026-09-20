@@ -1,4 +1,7 @@
-from pydantic import BaseModel, Field
+from datetime import datetime
+from typing import Any
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class CustomerRequest(BaseModel):
@@ -77,3 +80,16 @@ class PredictionResponse(BaseModel):
     risk_category: str = Field(..., description="LOW <30%, MEDIUM 30-60%, HIGH >=60%")
     model_version: str
     top_contributors: list[Contributor]
+
+
+class PredictionLogOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    timestamp: datetime
+    model_version: str
+    default_probability: float
+    risk_category: str
+    default_flag: bool
+    latency_ms: float
+    input_payload: dict[str, Any]

@@ -1,0 +1,15 @@
+# Pinned to match the versions that actually fit and pickled model/*.pkl (Phases 3-4) —
+# scikit-learn in particular changed its internal ColumnTransformer pickle format between
+# 1.6 and 1.9, so an unpinned install here breaks joblib.load() at container startup.
+pandas==2.3.3
+numpy==2.3.3
+scikit-learn==1.6.1
+joblib==1.5.2
+shap==0.52.0
+fastapi==0.115.12
+uvicorn==0.34.3
+sqlalchemy==2.0.41
+psycopg2-binary==2.9.9
+python-dotenv==1.1.0
+# xgboost intentionally excluded: the winning Phase 4 model is the Random Forest,
+# and no api/src runtime code imports xgboost — it's a training-time-only dependency.

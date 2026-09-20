@@ -1,6 +1,8 @@
-pandas
-numpy
-scikit-learn
+# pandas/numpy/scikit-learn pinned: scikit-learn's pickle format for ColumnTransformer
+# changed between 1.6 and 1.9, and model/*.pkl were fit with these exact versions.
+pandas==2.3.3
+numpy==2.3.3
+scikit-learn==1.6.1
 matplotlib
 seaborn
 jupyter
@@ -10,3 +12,6 @@ fastapi
 uvicorn
 httpx
 pytest
+sqlalchemy
+psycopg2-binary
+python-dotenv

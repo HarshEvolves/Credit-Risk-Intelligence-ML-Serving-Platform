@@ -2,7 +2,7 @@
 
 **Phase 1: repo setup + data ingestion. Phase 2: EDA. Phase 3: preprocessing + feature engineering.
 Phase 4: model training + evaluation. Phase 5: cost-based threshold + fairness audit.
-Phase 6: SHAP explainability. Phase 7: FastAPI service.**
+Phase 6: SHAP explainability. Phase 7: FastAPI service. Phase 8: Postgres logging + Docker.**
 
 Dataset: [UCI Default of Credit Card Clients](https://archive.ics.uci.edu/dataset/350/default+of+credit+card+clients) — 30,000 rows, 24 features, target `default.payment.next.month`.
 
@@ -73,10 +73,46 @@ curl -X POST http://127.0.0.1:8000/predict \\
 
 \`/predict\` returns \`default_probability\`, a \`default_flag\` (thresholded at the Phase 5
 production threshold from \`model/model_info.json\`), a \`risk_category\` band (LOW/MEDIUM/HIGH),
-and the top 5 SHAP \`top_contributors\` driving that specific prediction.
+and the top 5 SHAP \`top_contributors\` driving that specific prediction. Every call is also
+logged to Postgres (see below) — a DB write failure never breaks the response, it's just logged.
 
 Run the test suite:
 
 \`\`\`bash
 python -m pytest tests/
 \`\`\`
+
+## Docker (API + Postgres)
+
+\`\`\`bash
+cp .env.example .env
+docker compose up --build
+\`\`\`
+
+That builds the API image, starts Postgres (named volume \`pgdata\`, healthchecked so the
+API waits for it to actually accept connections rather than just start), waits for it to
+report healthy, then starts the API — which creates the \`predictions\` table itself on
+startup. The API is published on \`http://127.0.0.1:8001\` by default (\`API_PORT\` in \`.env\`);
+Postgres is not published to the host — the API reaches it over the internal Docker network
+by service name (\`postgres\`), not \`localhost\`.
+
+\`\`\`bash
+curl http://127.0.0.1:8001/health
+curl -X POST http://127.0.0.1:8001/predict \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "LIMIT_BAL": 20000, "SEX": 2, "EDUCATION": 2, "MARRIAGE": 1, "AGE": 24,
+    "PAY_0": 2, "PAY_2": 2, "PAY_3": -1, "PAY_4": -1, "PAY_5": -2, "PAY_6": -2,
+    "BILL_AMT1": 3913, "BILL_AMT2": 3102, "BILL_AMT3": 689, "BILL_AMT4": 0, "BILL_AMT5": 0, "BILL_AMT6": 0,
+    "PAY_AMT1": 0, "PAY_AMT2": 689, "PAY_AMT3": 0, "PAY_AMT4": 0, "PAY_AMT5": 0, "PAY_AMT6": 0
+  }'
+curl http://127.0.0.1:8001/predictions/recent   # confirms the row above actually got logged
+\`\`\`
+
+Note: \`requirements-api.txt\` (used by the Dockerfile, not \`requirements.txt\`) intentionally
+excludes \`xgboost\`, \`jupyter\`, \`matplotlib\`, and \`seaborn\` — none of them are imported by
+\`api/\` or \`src/\` at runtime, and \`xgboost\` in particular pulls in an unconditional ~250MB
+Linux CUDA dependency (\`nvidia-nccl-cu13\`) that's dead weight for a CPU-only Random Forest.
+Dropping it (not a multi-stage build — nothing here needs a compiler) cut the image from
+1.78GB to 1.08GB. Versions in \`requirements-api.txt\` are pinned to what actually fit and
+pickled \`model/*.pkl\`, since scikit-learn changed its pickle format between 1.6 and 1.9.
