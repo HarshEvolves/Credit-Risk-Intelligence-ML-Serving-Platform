@@ -8,6 +8,7 @@ package the same way it was when the pipeline was fit and saved.
 
 import json
 import logging
+import os
 import time
 from pathlib import Path
 
@@ -37,12 +38,16 @@ RISK_MEDIUM_MAX = 0.60
 
 app = FastAPI(title="Credit Risk Intelligence API")
 
-# Open CORS: this is an unauthenticated demo API with no cookies/credentials involved
-# (see frontend/), so there's no session to leak cross-origin — permissive by design,
-# not an oversight.
+# Scoped to the actual deployed frontend (Phase 12) plus local dev — not wildcard-open.
+# Overridable via ALLOWED_ORIGINS (comma-separated) so the origin list survives a frontend
+# redeploy without rebuilding this image.
+ALLOWED_ORIGINS = os.getenv(
+    "ALLOWED_ORIGINS",
+    "https://purple-river-026ece000.4.azurestaticapps.net,http://localhost:5173",
+).split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
 )
