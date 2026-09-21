@@ -54,21 +54,17 @@ export default function App() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-      <header className="mb-8">
-        <p className="font-display text-xs font-semibold uppercase tracking-[0.2em] text-accent">
-          Credit Risk Intelligence
-        </p>
-        <h1 className="mt-1 font-display text-3xl font-extrabold tracking-tight text-slate-50 sm:text-4xl">
-          Will this customer default?
-        </h1>
-        <p className="mt-2 max-w-2xl text-sm text-slate-400">
-          A locally-served Random Forest, explained per-prediction with SHAP, narrated in
-          plain English by an LLM. Enter a customer's history or load a real example below.
+    <div className="mx-auto max-w-5xl px-6 py-10 sm:px-10">
+      <header className="mb-10">
+        <p className="font-mono text-[11px] text-ink-soft">credit risk model — v1</p>
+        <h1 className="mt-3 font-serif text-3xl text-ink sm:text-[32px]">Will this customer default?</h1>
+        <p className="mt-2 max-w-xl font-serif text-[15px] text-ink-soft">
+          A Random Forest, explained per-prediction with SHAP and narrated by an LLM. Enter a
+          customer's repayment history, or load a recorded case below.
         </p>
       </header>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:items-start">
+      <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:items-start">
         <FormPanel
           values={values}
           onFieldChange={handleFieldChange}
@@ -84,8 +80,8 @@ export default function App() {
         />
       </div>
 
-      <footer className="mt-10 text-center text-[11px] text-slate-600">
-        Demo tool — UCI benchmark dataset, not real customer data. No lending decisions made here.
+      <footer className="mt-16 border-t border-line pt-4 font-mono text-[11px] text-ink-soft">
+        Demo — UCI benchmark dataset, not real customer data. No lending decisions made here.
       </footer>
     </div>
   );

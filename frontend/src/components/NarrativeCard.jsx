@@ -1,63 +1,32 @@
-import { AnimatePresence, motion } from "framer-motion";
-
+// Deliberately not a card: reads as an annotation on the SHAP list above it, not a second
+// identical panel. A left rule + serif italic (blockquote register), no border box, no icon.
 export default function NarrativeCard({ status, narrative }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.95, duration: 0.5 }}
-      className="rounded-xl border border-accent/25 bg-gradient-to-br from-accent/10 to-transparent p-4"
-    >
-      <div className="mb-2 flex items-center gap-2">
-        <span className="text-lg">✨</span>
-        <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-accent">
-          AI risk narrative
-        </h3>
-        <span className="ml-auto text-[10px] uppercase tracking-wider text-slate-500">via Groq</span>
+  if (status === "loading") {
+    return (
+      <div className="border-l-2 border-line pl-4">
+        <div className="h-3 w-11/12 animate-pulse rounded bg-line" />
+        <div className="mt-2 h-3 w-9/12 animate-pulse rounded bg-line" />
+        <div className="mt-2 h-3 w-10/12 animate-pulse rounded bg-line" />
       </div>
+    );
+  }
 
-      <AnimatePresence mode="wait">
-        {status === "loading" && (
-          <motion.div
-            key="loading"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="space-y-2"
-          >
-            {[0, 1, 2].map((i) => (
-              <div
-                key={i}
-                className="h-3 animate-shimmer rounded bg-[linear-gradient(90deg,#1c2333_0%,#2a3348_50%,#1c2333_100%)] bg-[length:400px_100%]"
-                style={{ width: `${90 - i * 15}%` }}
-              />
-            ))}
-          </motion.div>
-        )}
+  if (status === "unavailable") {
+    return (
+      <p className="border-l-2 border-line pl-4 font-mono text-[13px] italic text-ink-soft">
+        Narrative unavailable — the assessment above is unaffected.
+      </p>
+    );
+  }
 
-        {status === "ready" && (
-          <motion.p
-            key="ready"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-sm leading-relaxed text-slate-200"
-          >
-            {narrative}
-          </motion.p>
-        )}
+  if (status !== "ready" || !narrative) return null;
 
-        {status === "unavailable" && (
-          <motion.p
-            key="unavailable"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-sm italic text-slate-500"
-          >
-            Narrative unavailable right now (Groq may be unreachable, rate-limited, or
-            GROQ_API_KEY isn't set) — the prediction above is unaffected.
-          </motion.p>
-        )}
-      </AnimatePresence>
-    </motion.div>
+  return (
+    <blockquote className="border-l-2 border-ink pl-4">
+      <p className="font-serif text-[15px] italic leading-relaxed text-ink">{narrative}</p>
+      <footer className="mt-2 font-mono text-[11px] text-ink-soft">
+        — generated from the values above, via Groq
+      </footer>
+    </blockquote>
   );
 }

@@ -18,28 +18,25 @@ const BILL_PAY_MONTHS = [1, 2, 3, 4, 5, 6];
 
 export default function FormPanel({ values, onFieldChange, onLoadExample, onSubmit, isSubmitting }) {
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-5">
-      <div className="rounded-xl border border-surface-border bg-surface-card/60 p-4">
-        <h3 className="mb-1 font-display text-sm font-semibold text-slate-200">Load example</h3>
-        <p className="mb-3 text-xs text-slate-500">
-          Real test-set rows from the SHAP analysis — try one instead of guessing 23 values.
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {EXAMPLES.map((example) => (
+    <form onSubmit={onSubmit} className="flex flex-col gap-1">
+      <p className="font-mono text-[13px] text-ink-soft">
+        Recorded case:{" "}
+        {EXAMPLES.map((example, i) => (
+          <span key={example.key}>
             <button
-              key={example.key}
               type="button"
               onClick={() => onLoadExample(example)}
               title={example.description}
-              className="rounded-full border border-accent/30 bg-accent/10 px-3 py-1.5 text-xs font-medium text-accent transition hover:bg-accent/20"
+              className="text-ink underline decoration-line decoration-1 underline-offset-2 transition hover:decoration-ink"
             >
               {example.label}
             </button>
-          ))}
-        </div>
-      </div>
+            {i < EXAMPLES.length - 1 && <span className="text-ink-soft">, </span>}
+          </span>
+        ))}
+      </p>
 
-      <FieldGroup title="Personal info">
+      <FieldGroup title="personal">
         <NumberField
           label="Age"
           value={values.AGE}
@@ -62,7 +59,7 @@ export default function FormPanel({ values, onFieldChange, onLoadExample, onSubm
         />
       </FieldGroup>
 
-      <FieldGroup title="Credit info" columns={1}>
+      <FieldGroup title="credit" columns={1}>
         <NumberField
           label="Credit limit (NT$)"
           value={values.LIMIT_BAL}
@@ -73,7 +70,7 @@ export default function FormPanel({ values, onFieldChange, onLoadExample, onSubm
         />
       </FieldGroup>
 
-      <FieldGroup title="Repayment history" subtitle="Last 6 months — status per month">
+      <FieldGroup title="repayment, last 6 months">
         {PAY_FIELDS.map((field) => (
           <PaySlider
             key={field}
@@ -86,12 +83,12 @@ export default function FormPanel({ values, onFieldChange, onLoadExample, onSubm
         ))}
       </FieldGroup>
 
-      <FieldGroup title="Bill / payment history" subtitle="Last 6 months — statement bill vs. amount paid" columns={1}>
+      <FieldGroup title="bills and payments, last 6 months" columns={1}>
         {BILL_PAY_MONTHS.map((month) => {
           const billField = `BILL_AMT${month}`;
           const payField = `PAY_AMT${month}`;
           return (
-            <div key={month} className="grid grid-cols-2 gap-3 border-b border-surface-border/60 pb-3 last:border-0 last:pb-0">
+            <div key={month} className="grid grid-cols-2 gap-4">
               <NumberField
                 label={`Month ${month} bill (NT$)`}
                 value={values[billField]}
@@ -116,9 +113,9 @@ export default function FormPanel({ values, onFieldChange, onLoadExample, onSubm
       <button
         type="submit"
         disabled={isSubmitting}
-        className="rounded-xl bg-accent px-6 py-3 font-display text-sm font-bold text-surface shadow-glow transition hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-60"
+        className="mt-6 self-start border border-ink bg-ink px-5 py-2.5 font-mono text-[13px] text-paper transition hover:bg-brand hover:border-brand disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {isSubmitting ? "Scoring…" : "Predict risk"}
+        {isSubmitting ? "Scoring" : "Run assessment"}
       </button>
     </form>
   );

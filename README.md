@@ -230,9 +230,8 @@ theory.
 
 ## Phase 11: Frontend
 
-A React + Vite single-page app in `frontend/` — dark fintech UI (Sora for headers, Inter for
-body, a continuous teal→amber→red risk gradient), calling `POST /predict?narrate=true`
-against the backend above. Not a generic form: 23 raw fields are grouped into four sections
+A React + Vite single-page app in `frontend/` calling `POST /predict?narrate=true` against
+the backend above. Not a generic form: 23 raw fields are grouped into four sections
 (Personal info, Credit info, Repayment history, Bill/payment history), `PAY_0`-`PAY_6` are
 sliders labeled with their actual meaning ("2 months late", not just the number 2), and three
 "Load example" buttons preload the exact true-positive/false-positive/true-negative rows
@@ -240,10 +239,18 @@ documented above — re-extracted from `X_test_raw` and re-verified against the 
 (`predict_proba` matches 0.983 / 0.9806 / 0.0493 exactly) before being hardcoded, not
 retyped by hand.
 
-On submit, the result panel reveals in sequence: an animated circular gauge (SVG stroke
-animation via framer-motion, color continuously interpolated by risk level, not 3 flat
-buckets), a color-coded risk badge, a recharts horizontal bar chart of `top_contributors`
-(red = increases risk, teal = decreases risk), then the AI narrative fades in last.
+Visually it's a paper/ledger register, not a dark dashboard: a warm off-white background
+(`#F7F5F0`), hairline rules instead of card shadows, Source Serif 4 for headings and prose,
+IBM Plex Mono for every number and label (guaranteeing genuinely tabular figures), and the
+teal→amber→red risk gradient confined strictly to where it's functionally meaningful — the
+`PAY_` sliders, the result gauge, and the SHAP list's direction glyphs — never used as page
+decoration. See the "Redesign" note below for why and what changed from the original build.
+
+On submit, the result panel reveals: a large tabular numeral inside a thin animated arc
+(the one deliberate motion moment on the page — nothing else fades in on a timer), the risk
+word, a plain list of `top_contributors` with directional arrows and inline magnitude bars
+(not a bar chart in a card), then a pull-quote-style narrative (left rule + serif italic,
+structurally distinct from the list above it, not a second identical card).
 
 That last part is deliberately **two separate API calls**, not one: a fast plain `/predict`
 renders the gauge and chart the instant inference finishes, while a second
@@ -260,6 +267,34 @@ console output. And the backend had no CORS headers at all, since nothing before
 ever called it from a browser. Fixed by loosening the number `step` to `1` and adding
 `CORSMiddleware` (`allow_origins=["*"]` — reasonable for an unauthenticated demo API with no
 cookies to leak) to `api/main.py`.
+
+### Redesign: avoiding the generic AI-styled default
+
+The first build (above) was a defensible but generic pattern — near-black background, one
+bright cyan accent, geometric-sans headers, uniform rounded-card-with-shadow for every panel.
+It was redesigned deliberately against that default, following Mercury/Stripe's actual
+convention: mostly neutral, disciplined color, with color spent only where it carries
+meaning.
+
+- **Palette**: warm paper (`#F7F5F0`) over near-black, hairline `line` borders (`#E3DFD5`)
+  instead of card shadows, one restrained navy `brand` accent (`#2B3A55`) for interactive
+  elements only. The teal/amber/red risk scale is kept but confined to the `PAY_` sliders,
+  the gauge, and the SHAP list's direction glyphs — never decoration.
+- **Type**: Source Serif 4 (headings, prose, the narrative quote) + IBM Plex Mono (every
+  number and label) — a financial-document pairing, not geometric-sans-plus-Inter.
+- **Structure**: the SHAP list and the narrative are deliberately not two identical
+  rounded cards — the list has directional arrows and inline magnitude bars, the narrative
+  is a pull-quote (left rule, serif italic, no border box). The result gauge's arc+numeral
+  count-up is the only orchestrated motion on the page; the old build's per-element staggered
+  fade-ins are gone.
+- **A real bug found while rebuilding**: the original `AnimatePresence mode="wait"` swap
+  between idle/loading/ready blocked on framer-motion's exit animation completing, which is
+  `requestAnimationFrame`-driven — under a backgrounded/throttled tab (which is how this was
+  being tested), rAF stalls and the transition never resolves, leaving the UI stuck on
+  "idle" even though the API call had already succeeded. Fixed by dropping the AnimatePresence
+  choreography for the state container entirely (plain conditional rendering — it doesn't
+  need an exit animation) and keeping motion only where it was asked for: the one gauge
+  reveal.
 
 ## How to run it
 

@@ -1,10 +1,11 @@
 // Continuous teal -> amber -> red gradient keyed on probability, so the gauge color reads
 // as a spectrum rather than jumping between 3 flat colors at the LOW/MEDIUM/HIGH boundaries.
+// Muted/deep values (not saturated traffic-light colors) to match the paper/ledger palette.
 const STOPS = [
-  { at: 0, color: [45, 212, 191] }, // risk-low
-  { at: 0.3, color: [245, 158, 11] }, // risk-mid
-  { at: 0.6, color: [239, 68, 68] }, // risk-high
-  { at: 1, color: [220, 38, 38] }, // deeper red at the extreme
+  { at: 0, color: [30, 122, 92] }, // risk-low
+  { at: 0.3, color: [166, 116, 27] }, // risk-mid
+  { at: 0.6, color: [172, 51, 39] }, // risk-high
+  { at: 1, color: [143, 42, 32] }, // deeper at the extreme
 ];
 
 export function riskColor(probability) {
@@ -21,8 +22,9 @@ export function riskColor(probability) {
   return `rgb(${STOPS.at(-1).color.join(", ")})`;
 }
 
-export const RISK_CATEGORY_STYLES = {
-  LOW: { text: "text-risk-low", bg: "bg-risk-low/15", border: "border-risk-low/40", dot: "bg-risk-low" },
-  MEDIUM: { text: "text-risk-mid", bg: "bg-risk-mid/15", border: "border-risk-mid/40", dot: "bg-risk-mid" },
-  HIGH: { text: "text-risk-high", bg: "bg-risk-high/15", border: "border-risk-high/40", dot: "bg-risk-high" },
+// Plain text-color classes only — the risk word in the hero is set in type, not a pill/badge.
+export const RISK_CATEGORY_TEXT = {
+  LOW: "text-risk-low",
+  MEDIUM: "text-risk-mid",
+  HIGH: "text-risk-high",
 };

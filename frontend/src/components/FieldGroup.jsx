@@ -9,12 +9,12 @@ const GRID_COLUMNS = {
 
 export default function FieldGroup({ title, subtitle, children, columns = 2 }) {
   return (
-    <section className="rounded-xl border border-surface-border bg-surface-card/60 p-4">
-      <div className="mb-3">
-        <h3 className="font-display text-sm font-semibold text-slate-200">{title}</h3>
-        {subtitle && <p className="text-xs text-slate-500">{subtitle}</p>}
+    <section className="border-t border-line pt-5">
+      <div className="mb-4">
+        <h3 className="font-mono text-[11px] text-ink-soft">{title}</h3>
+        {subtitle && <p className="mt-0.5 font-mono text-[11px] text-ink-soft/70">{subtitle}</p>}
       </div>
-      <div className={`grid grid-cols-1 gap-3 ${GRID_COLUMNS[columns] ?? GRID_COLUMNS[2]}`}>{children}</div>
+      <div className={`grid grid-cols-1 gap-4 ${GRID_COLUMNS[columns] ?? GRID_COLUMNS[2]}`}>{children}</div>
     </section>
   );
 }

@@ -4,28 +4,26 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        display: ["Sora", "system-ui", "sans-serif"],
-        body: ["Inter", "system-ui", "sans-serif"],
+        serif: ["'Source Serif 4'", "Georgia", "serif"],
+        mono: ["'IBM Plex Mono'", "ui-monospace", "monospace"],
       },
       colors: {
-        surface: {
-          DEFAULT: "#0a0e16",
-          panel: "#0f1420",
-          card: "#141a29",
-          border: "#232b3d",
+        paper: "#F7F5F0",
+        surface: "#FFFFFF",
+        ink: {
+          DEFAULT: "#171512",
+          soft: "#6F6A61",
         },
-        accent: {
-          DEFAULT: "#22d3ee",
-          dim: "#0891b2",
+        line: "#E3DFD5",
+        brand: {
+          DEFAULT: "#2B3A55",
+          soft: "#3D4E6B",
         },
         risk: {
-          low: "#2dd4bf",
-          mid: "#f59e0b",
-          high: "#ef4444",
+          low: "#1E7A5C",
+          mid: "#A6741B",
+          high: "#AC3327",
         },
-      },
-      boxShadow: {
-        glow: "0 0 40px -10px rgba(34, 211, 238, 0.35)",
       },
       keyframes: {
         shimmer: {

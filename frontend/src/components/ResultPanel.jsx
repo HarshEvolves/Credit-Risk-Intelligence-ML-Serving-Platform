@@ -1,75 +1,45 @@
-import { AnimatePresence, motion } from "framer-motion";
-import ContributorsChart from "./ContributorsChart";
+import ContributorsList from "./ContributorsList";
 import Gauge from "./Gauge";
 import NarrativeCard from "./NarrativeCard";
 import ResultSkeleton from "./ResultSkeleton";
 import RiskBadge from "./RiskBadge";
 
+// Plain conditional rendering, deliberately — no AnimatePresence cross-fade between
+// idle/loading/ready/error. The gauge's own arc+numeral animation (Gauge.jsx) is the one
+// orchestrated motion moment on the page; the state container itself just swaps instantly.
 export default function ResultPanel({ status, result, narrativeStatus, errorMessage }) {
   return (
-    <div className="sticky top-6 rounded-2xl border border-surface-border bg-surface-panel/80 p-6 shadow-glow backdrop-blur">
-      <h2 className="mb-5 font-display text-lg font-semibold text-slate-100">Risk assessment</h2>
+    <div className="border-t border-line pt-8 lg:border-l lg:border-t-0 lg:pl-10 lg:pt-0">
+      {status === "idle" && (
+        <p className="font-mono text-[13px] text-ink-soft">
+          Fill in the form, or load a recorded case, then run the assessment.
+        </p>
+      )}
 
-      <AnimatePresence mode="wait">
-        {status === "idle" && (
-          <motion.div
-            key="idle"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="flex flex-col items-center gap-3 py-16 text-center text-slate-500"
-          >
-            <span className="text-4xl">📊</span>
-            <p className="max-w-[220px] text-sm">
-              Fill in the form (or load an example) and submit to see a live prediction.
-            </p>
-          </motion.div>
-        )}
+      {status === "loading" && <ResultSkeleton />}
 
-        {status === "loading" && (
-          <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <ResultSkeleton />
-          </motion.div>
-        )}
+      {status === "error" && (
+        <p className="border-l-2 border-risk-high pl-4 font-mono text-[13px] text-risk-high">{errorMessage}</p>
+      )}
 
-        {status === "error" && (
-          <motion.div
-            key="error"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="rounded-lg border border-risk-high/40 bg-risk-high/10 p-4 text-sm text-risk-high"
-          >
-            <p className="font-semibold">Request failed</p>
-            <p className="mt-1 text-risk-high/80">{errorMessage}</p>
-          </motion.div>
-        )}
+      {status === "ready" && result && (
+        <div>
+          <div className="flex items-center gap-6">
+            <Gauge probability={result.default_probability} />
+            <RiskBadge category={result.risk_category} />
+          </div>
 
-        {status === "ready" && result && (
-          <motion.div
-            key="ready"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="flex flex-col items-center gap-5"
-          >
-            <Gauge probability={result.default_probability} riskCategory={result.risk_category} />
-            <RiskBadge category={result.risk_category} defaultFlag={result.default_flag} />
+          <div className="mt-8 border-t border-line pt-6">
+            <ContributorsList contributors={result.top_contributors} />
+          </div>
 
-            <div className="w-full border-t border-surface-border pt-4">
-              <ContributorsChart contributors={result.top_contributors} />
-            </div>
+          <div className="mt-8 border-t border-line pt-6">
+            <NarrativeCard status={narrativeStatus} narrative={result.risk_narrative} />
+          </div>
 
-            <div className="w-full">
-              <NarrativeCard status={narrativeStatus} narrative={result.risk_narrative} />
-            </div>
-
-            <p className="w-full text-center text-[11px] text-slate-600">
-              model: {result.model_version}
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          <p className="mt-8 font-mono text-[11px] text-ink-soft">model {result.model_version}</p>
+        </div>
+      )}
     </div>
   );
 }

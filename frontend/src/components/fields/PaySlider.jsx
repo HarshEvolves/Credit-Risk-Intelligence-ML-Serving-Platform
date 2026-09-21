@@ -3,11 +3,9 @@ import { PAY_STATUS_LABELS } from "../../data/fieldBounds";
 export default function PaySlider({ label, value, onChange, min, max }) {
   return (
     <label className="block">
-      <span className="mb-1 flex items-center justify-between text-xs font-medium text-slate-400">
+      <span className="mb-1 flex items-baseline justify-between font-mono text-[11px] text-ink-soft">
         <span>{label}</span>
-        <span className="font-display font-semibold text-slate-200">
-          {PAY_STATUS_LABELS[value] ?? value}
-        </span>
+        <span className="text-ink">{PAY_STATUS_LABELS[value] ?? value}</span>
       </span>
       <input
         type="range"

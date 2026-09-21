@@ -1,23 +1,24 @@
 function Bone({ className = "" }) {
-  return (
-    <div
-      className={`animate-shimmer rounded bg-[linear-gradient(90deg,#141a29_0%,#1e2637_50%,#141a29_100%)] bg-[length:400px_100%] ${className}`}
-    />
-  );
+  return <div className={`animate-pulse rounded bg-line ${className}`} />;
 }
 
 export default function ResultSkeleton() {
   return (
-    <div className="flex flex-col items-center gap-6 py-4">
-      <Bone className="h-[220px] w-[220px] rounded-full" />
-      <Bone className="h-7 w-40 rounded-full" />
-      <div className="w-full space-y-3">
-        <Bone className="h-4 w-1/3" />
+    <div className="flex flex-col gap-6">
+      <div className="flex items-center gap-5">
+        <Bone className="h-[168px] w-[168px] rounded-full" />
+        <div className="space-y-2">
+          <Bone className="h-6 w-24" />
+          <Bone className="h-3 w-32" />
+        </div>
+      </div>
+      <div className="space-y-3 border-t border-line pt-5">
+        <Bone className="h-3 w-16" />
         {[0, 1, 2, 3, 4].map((i) => (
-          <Bone key={i} className="h-9 w-full" />
+          <Bone key={i} className="h-4 w-full" />
         ))}
       </div>
-      <p className="text-xs text-slate-500">Running inference…</p>
+      <p className="font-mono text-[11px] text-ink-soft">running inference…</p>
     </div>
   );
 }
