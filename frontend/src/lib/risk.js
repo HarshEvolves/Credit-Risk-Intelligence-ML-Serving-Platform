@@ -22,9 +22,17 @@ export function riskColor(probability) {
   return `rgb(${STOPS.at(-1).color.join(", ")})`;
 }
 
-// Plain text-color classes only — the risk word in the hero is set in type, not a pill/badge.
+// Plain text-color classes — the risk word in the hero is set in type, not a pill/badge.
 export const RISK_CATEGORY_TEXT = {
   LOW: "text-risk-low",
   MEDIUM: "text-risk-mid",
   HIGH: "text-risk-high",
+};
+
+// Tinted-chip classes for the "recorded case" examples: color tied to the model's actual
+// predicted category for that row, not decoration.
+export const RISK_CATEGORY_CHIP = {
+  LOW: "border-risk-low/30 bg-risk-low/10 text-risk-low",
+  MEDIUM: "border-risk-mid/30 bg-risk-mid/10 text-risk-mid",
+  HIGH: "border-risk-high/30 bg-risk-high/10 text-risk-high",
 };

@@ -54,35 +54,39 @@ export default function App() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-10 sm:px-10">
-      <header className="mb-10">
-        <p className="font-mono text-[11px] text-ink-soft">credit risk model — v1</p>
-        <h1 className="mt-3 font-serif text-3xl text-ink sm:text-[32px]">Will this customer default?</h1>
-        <p className="mt-2 max-w-xl font-serif text-[15px] text-ink-soft">
-          A Random Forest, explained per-prediction with SHAP and narrated by an LLM. Enter a
-          customer's repayment history, or load a recorded case below.
-        </p>
+    <div className="min-h-screen">
+      <header className="bg-brand">
+        <div className="mx-auto max-w-5xl px-6 py-10 sm:px-10">
+          <p className="font-mono text-[11px] text-paper/60">credit risk model — v1</p>
+          <h1 className="mt-3 font-serif text-3xl text-paper sm:text-[32px]">Will this customer default?</h1>
+          <p className="mt-2 max-w-xl font-serif text-[15px] text-paper/70">
+            A Random Forest, explained per-prediction with SHAP and narrated by an LLM. Enter a
+            customer's repayment history, or load a recorded case below.
+          </p>
+        </div>
       </header>
 
-      <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:items-start">
-        <FormPanel
-          values={values}
-          onFieldChange={handleFieldChange}
-          onLoadExample={handleLoadExample}
-          onSubmit={handleSubmit}
-          isSubmitting={status === "loading"}
-        />
-        <ResultPanel
-          status={status}
-          result={result}
-          narrativeStatus={narrativeStatus}
-          errorMessage={errorMessage}
-        />
-      </div>
+      <div className="mx-auto max-w-5xl px-6 py-10 sm:px-10">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:items-start">
+          <FormPanel
+            values={values}
+            onFieldChange={handleFieldChange}
+            onLoadExample={handleLoadExample}
+            onSubmit={handleSubmit}
+            isSubmitting={status === "loading"}
+          />
+          <ResultPanel
+            status={status}
+            result={result}
+            narrativeStatus={narrativeStatus}
+            errorMessage={errorMessage}
+          />
+        </div>
 
-      <footer className="mt-16 border-t border-line pt-4 font-mono text-[11px] text-ink-soft">
-        Demo — UCI benchmark dataset, not real customer data. No lending decisions made here.
-      </footer>
+        <footer className="mt-16 border-t border-line pt-4 font-mono text-[11px] text-ink-soft">
+          Demo — UCI benchmark dataset, not real customer data. No lending decisions made here.
+        </footer>
+      </div>
     </div>
   );
 }

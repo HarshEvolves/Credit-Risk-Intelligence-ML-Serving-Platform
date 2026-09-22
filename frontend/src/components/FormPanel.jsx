@@ -1,5 +1,6 @@
 import { EXAMPLES } from "../data/exampleRows";
 import { EDUCATION_OPTIONS, FIELD_BOUNDS, MARRIAGE_OPTIONS, SEX_OPTIONS } from "../data/fieldBounds";
+import { RISK_CATEGORY_CHIP } from "../lib/risk";
 import FieldGroup from "./FieldGroup";
 import NumberField from "./fields/NumberField";
 import PaySlider from "./fields/PaySlider";
@@ -18,23 +19,23 @@ const BILL_PAY_MONTHS = [1, 2, 3, 4, 5, 6];
 
 export default function FormPanel({ values, onFieldChange, onLoadExample, onSubmit, isSubmitting }) {
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-1">
-      <p className="font-mono text-[13px] text-ink-soft">
-        Recorded case:{" "}
-        {EXAMPLES.map((example, i) => (
-          <span key={example.key}>
+    <form onSubmit={onSubmit} className="flex flex-col gap-4">
+      <div>
+        <p className="mb-2 font-mono text-[11px] text-ink-soft">recorded case — colored by the model's own call</p>
+        <div className="flex flex-wrap gap-2">
+          {EXAMPLES.map((example) => (
             <button
+              key={example.key}
               type="button"
               onClick={() => onLoadExample(example)}
               title={example.description}
-              className="text-ink underline decoration-line decoration-1 underline-offset-2 transition hover:decoration-ink"
+              className={`rounded-full border px-3 py-1 font-mono text-[12px] transition hover:brightness-95 ${RISK_CATEGORY_CHIP[example.risk]}`}
             >
               {example.label}
             </button>
-            {i < EXAMPLES.length - 1 && <span className="text-ink-soft">, </span>}
-          </span>
-        ))}
-      </p>
+          ))}
+        </div>
+      </div>
 
       <FieldGroup title="personal">
         <NumberField
@@ -113,7 +114,7 @@ export default function FormPanel({ values, onFieldChange, onLoadExample, onSubm
       <button
         type="submit"
         disabled={isSubmitting}
-        className="mt-6 self-start border border-ink bg-ink px-5 py-2.5 font-mono text-[13px] text-paper transition hover:bg-brand hover:border-brand disabled:cursor-not-allowed disabled:opacity-50"
+        className="mt-6 self-start rounded-sm bg-brand px-6 py-3 font-mono text-[13px] text-paper transition hover:bg-brand-soft disabled:cursor-not-allowed disabled:opacity-50"
       >
         {isSubmitting ? "Scoring" : "Run assessment"}
       </button>

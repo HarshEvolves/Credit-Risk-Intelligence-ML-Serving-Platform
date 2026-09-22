@@ -6,6 +6,7 @@ export const EXAMPLES = [
   {
     key: "true_positive",
     label: "High risk (caught)",
+    risk: "HIGH", // model's actual predicted category, for the chip color
     description: "98.3% predicted risk — correctly flagged, customer did default.",
     values: {
       LIMIT_BAL: 220000,
@@ -36,6 +37,7 @@ export const EXAMPLES = [
   {
     key: "false_positive",
     label: "Borderline (false positive)",
+    risk: "HIGH",
     description: "98.1% predicted risk — flagged, but this customer did not default.",
     values: {
       LIMIT_BAL: 50000,
@@ -66,6 +68,7 @@ export const EXAMPLES = [
   {
     key: "true_negative",
     label: "Low risk (clean history)",
+    risk: "LOW",
     description: "4.9% predicted risk — correctly cleared, on-time repayment history.",
     values: {
       LIMIT_BAL: 510000,
